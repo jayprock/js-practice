@@ -15,6 +15,14 @@ var budgetController = (function () {
         this.value = value;
     };
 
+    var calculateTotal = function(type) {
+        var sum = 0;
+        data.allItems[type].forEach(function(curr) {
+            sum += curr.value;
+        });
+        data.totals[type] = sum;
+    }
+
     var data = {
         allItems: {
             exp: [],
@@ -23,7 +31,9 @@ var budgetController = (function () {
         totals: {
             exp: 0,
             inc: 0
-        }
+        },
+        budget: 0,
+        percentage: -1
     }
 
     return {
@@ -45,6 +55,30 @@ var budgetController = (function () {
             data.allItems[type].push(newItem);
 
             return newItem;
+        },
+
+        calculateBudget: function() {
+
+            // calculate total income and expenses
+            calculateTotal('exp');
+            calculateTotal('inc');
+
+            // calculate the budget (income - expenses)
+            data.budget = data.totals.inc - data.totals.exp;
+
+            // calculate the percentage of income that we spend
+            if (data.totals.inc > 0) {
+                data.percentage = Math.round((data.totals.exp / data.totals.inc) * 100);
+            }
+        }, 
+
+        getBudget: function() {
+            return {
+                budget: data.budget,
+                totalIncome: data.totals.inc,
+                totalExpenses: data.totals.exp,
+                percentage: data.percentage
+            }
         },
 
         testing: function () {
@@ -138,6 +172,17 @@ var appController = (function (budgetCtrl, uiCtrl) {
         });
     };
 
+    var updateBudget = function() {
+        // Calculate the budget
+        budgetCtrl.calculateBudget();
+
+        // Return the budget
+        var budget = budgetCtrl.getBudget();
+
+        // Display the budget in the UI
+        console.log(budget);
+    };
+
     var ctrlAddItem = function () {
 
         var input, newItem;
@@ -156,17 +201,9 @@ var appController = (function (budgetCtrl, uiCtrl) {
             uiCtrl.clearFields();
 
             // 5. Update the budget
-
+            updateBudget();
         }
 
-    };
-
-    var updateBudget = function () {
-        // 1. Calc budget
-
-        // 2. Return the budget
-
-        // 3. Display the budget in the UI
     };
 
     return {
